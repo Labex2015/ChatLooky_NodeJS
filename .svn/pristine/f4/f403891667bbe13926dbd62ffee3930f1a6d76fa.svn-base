@@ -1,0 +1,25 @@
+var should = require('should'),
+    request = require('supertest'),
+    app = require('../app.js'),
+    mongoose = require('mongoose'),
+    Interaction = mongoose.model('Interactions'),
+    agent = request.agent(app);
+
+describe('Interaction Crud Test', function(){
+    it('Deveria permitir a interacao ser postada e retornar _id', function(done){
+        var interactionPost = {idRequestHelp:'0', title:'HELP ME', description:'Annaksunamoon imothep'};
+
+        agent.post('/api/interactions')
+            .send(interactionPost)
+            .expect(200)
+            .end(function(err, results){
+                results.body.should.have.property('_id');
+                done()
+            })
+    })
+
+    afterEach(function(done){
+        Interaction.remove().exec();
+        done();
+    })
+})

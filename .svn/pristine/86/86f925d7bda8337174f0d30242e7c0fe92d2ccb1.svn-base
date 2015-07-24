@@ -1,0 +1,69 @@
+{
+  "author": {
+    "name": "Paweł 'Lipathor' Lipka",
+    "email": "pawel@trewebs.com"
+  },
+  "name": "simon",
+  "description": "Simple Mongodb for Node.js library",
+  "keywords": [
+    "mongodb",
+    "simple",
+    "crud",
+    "search",
+    "pagination"
+  ],
+  "homepage": "https://github.com/Lipathor/simon",
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Paweł 'Lipathor' Lipka",
+      "email": "pawel@trewebs.com"
+    }
+  ],
+  "version": "0.2.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lipathor/simon"
+  },
+  "bugs": {
+    "url": "https://github.com/Lipathor/simon/issues"
+  },
+  "main": "./index",
+  "scripts": {
+    "test": "mocha"
+  },
+  "engines": {
+    "node": ">= 0.4.0"
+  },
+  "dependencies": {
+    "mongodb": "*",
+    "q": "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*",
+    "mongodb": "*"
+  },
+  "readme": "[![Build Status](https://secure.travis-ci.org/Lipathor/simon.png)](http://travis-ci.org/Lipathor/simon)",
+  "readmeFilename": "README.md",
+  "_id": "simon@0.2.3",
+  "_from": "simon@*",
+  "dist": {
+    "shasum": "5bfc2b965872af2d1df5f11cc9385ccd027a7b66",
+    "tarball": "http://registry.npmjs.org/simon/-/simon-0.2.3.tgz"
+  },
+  "_npmVersion": "1.2.10",
+  "_npmUser": {
+    "name": "lipathor",
+    "email": "pawel@lipka.net.pl"
+  },
+  "maintainers": [
+    {
+      "name": "lipathor",
+      "email": "pawel@lipka.net.pl"
+    }
+  ],
+  "directories": {},
+  "_shasum": "5bfc2b965872af2d1df5f11cc9385ccd027a7b66",
+  "_resolved": "https://registry.npmjs.org/simon/-/simon-0.2.3.tgz"
+}

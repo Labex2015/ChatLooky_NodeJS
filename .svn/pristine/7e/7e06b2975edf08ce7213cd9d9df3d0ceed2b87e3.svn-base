@@ -1,0 +1,168 @@
+var express = require('express');
+var app = express();
+var mongojs = require('mongojs');
+var db = mongojs('Looky',['knowledges', 'areas', 'subjects', 'degrees']);
+var bodyParser = require('body-parser');
+
+app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.json());
+
+app.get('/knowledges/:idUser', function(req, res, next){
+
+      var id = req.params.idUser;
+      db.knowledges.find({idUser:id}, function (err, knowledges) {
+        if(err)
+            res.status(500).send(err);
+        else if(knowledges){
+            req.knowledge = knowledges;
+            res.status(200).send(req.knowledge);
+        }
+        else
+        {
+            res.status(404).send('Nada encontrado');
+        }
+      });
+});
+
+app.get('/knowledges', function(req, res){
+        db.knowledges.find(function(err, docs){
+        res.json(docs);
+    });
+});
+
+
+app.post('/knowledges', function(req, res){
+
+        var knowledge = req.body;
+
+        if(knowledge.area._id){
+             db.knowledges.insert(
+             {
+                idUser: knowledge.idUser,
+                name: knowledge.name,
+                area: knowledge.area,
+                subject: knowledge.subject,
+                degree: knowledge.degree
+             }, function(err, doc){
+                res.status(201);
+                res.send(doc);
+             }
+        )}
+        else{
+            db.areas.insert({"name":knowledge.area}, function(err, docs){
+                res.status(201);
+                db.knowledges.insert(
+                     {
+                        idUser: knowledge.idUser,
+                        name: knowledge.name,
+                        area: docs.name,
+                        subject: knowledge.subject,
+                        degree: knowledge.degree
+                     }, function(err, doc){
+                        res.status(201);
+                        res.send(doc);
+                     }
+                );
+            });
+        }
+});
+        /*
+        if(!req.body.name){
+            res.status(400);
+            res.send('Nome é requerido');
+        }
+        else{
+             db.areas.find({"name":knowledge.idArea}, function(err, areas){
+
+                if(areas[0]){
+                     knowledge.idArea = areas[0]._id;
+                     db.knowledges.insert(
+                         {
+                            idUser: knowledge.idUser,
+                            name: knowledge.name,
+                            idArea: knowledge.idArea,
+                            idSubject: knowledge.idSubject,
+                            idDegree: knowledge.idDegree
+                         }, function(err, doc){
+                            res.status(201);
+                            res.send(doc);
+                         }
+                     );
+                }
+                else{
+                    db.areas.insert({"name":knowledge.idArea}, function(err, docs){
+                        res.status(201);
+                        db.knowledges.insert(
+                             {
+                                idUser: knowledge.idUser,
+                                name: knowledge.name,
+                                idArea: docs._id,
+                                idSubject: knowledge.idSubject,
+                                idDegree: knowledge.idDegree
+                             }, function(err, doc){
+                                res.status(201);
+                                res.send(doc);
+                             }
+                        );
+                    });
+                }
+            })
+        }
+        */
+
+app.get('/areas', function(req, res){
+    db.areas.find(function(err, docs){
+        res.json(docs);
+    });
+});
+
+app.post('/areas', function(req, res){
+        db.areas.insert({
+            name: req.body.name,
+        }, function(err, doc){
+            res.status(201);
+            res.send(doc)
+        });
+});
+
+app.get('/degrees', function(req, res){
+        db.degrees.find(function(err, docs){
+        res.json(docs);
+    });
+});
+
+app.post('/degrees', function(req, res){
+        db.degrees.insert({
+            name: req.body.name
+        }, function(err, doc){
+            res.status(201);
+            res.send(doc)
+        });
+});
+
+app.get('/subjects', function(req, res){
+        db.subjects.find(function(err, docs){
+            res.json(docs);
+        });
+});
+
+app.post('/subjects', function(req, res){
+        db.subjects.insert({
+            name: req.body.name,
+            curse: req.body.curse
+        }, function(err, doc){
+            res.status(201);
+            res.send(doc)
+        });
+});
+
+app.delete('/knowledges/:idUser/:name', function(req, res){
+    var id = req.params.idUser;
+    var name = req.params.name;
+    db.knowledges.remove({idUser:id, name:name}, function (err, doc) {
+        res.json(doc);
+    });
+});
+
+app.listen(3000);
+console.log("Server running on port 3000");

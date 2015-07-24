@@ -1,0 +1,42 @@
+var interactionController = function(Interaction){
+
+    var post = function(req, res){
+        var interaction = new Interaction(req.body);
+
+        if(!req.body.title){
+            res.status(400);
+            res.send('Title is required');
+        }
+        else{
+            interaction.save();
+            res.status(201);
+            res.send(interaction);
+        }
+    }
+
+    var get = function(req, res){
+
+          var query = {};
+
+          Interaction.find(query, function(err,interactions){
+              if(err)
+                  res.status(500).send(err);
+              else{
+                  var returnInteractions = [];
+                  interactions.forEach(function(element, index, array){
+                    var newInteraction = element.toJSON();
+                    returnInteractions.push(newInteraction);
+                  });
+                  res.json(returnInteractions);
+
+              }
+          })
+      }
+
+    return {
+        post:post,
+        get:get
+    }
+}
+
+module.exports = interactionController;

@@ -1,0 +1,34 @@
+var express = require('express'),
+    mongoose = require('mongoose');
+    bodyParser = require('body-parser');
+
+
+var db = mongoose.connect('mongodb://localhost/Looky');
+
+var Interaction = require('./models/interactionModel');
+var Knowledge = require('./models/knowledgeModel');
+
+
+var app = express();
+
+var port = process.env.PORT || 3000;
+
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
+
+interactionRouter = require('./Routes/interactionRoutes')(Interaction);
+knowledgeRouter = require('./Routes/knowledgeRoutes')(Knowledge);
+
+app.use('/api/interactions', interactionRouter);
+app.use('/api/knowledges', knowledgeRouter);
+
+
+app.get('/', function(req, res){
+     res.json("Meu APP");
+});
+
+app.listen(port, function(){
+    console.log("Gulp is running my app on PORT: " + port);
+});
+
+module.exports = app;

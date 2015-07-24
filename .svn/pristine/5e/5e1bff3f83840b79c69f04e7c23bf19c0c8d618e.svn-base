@@ -1,0 +1,82 @@
+var express = require('express');
+
+var routes = function(Interaction){
+
+    var interactionRouter = express.Router();
+
+    var interactionController = require('../controllers/interactionController')(Interaction);
+    interactionRouter.route('/')
+        .post(interactionController.post)
+        .get(interactionController.get);
+
+    interactionRouter.use('/:interactionId', function(req, res, next){
+         Interaction.findById(req.params.interactionId, function(err,interactions){
+            if(err)
+                res.status(500).send(err);
+            else if(interactions){
+                req.interaction = interactions;
+                next();
+            }
+            else
+            {
+                res.status(404).send('Interasão não encontrada');
+            }
+        });
+    })
+    interactionRouter.route('/:interactionId')
+        .get(function(req, res){
+
+            var returnInteraction = req.interaction.toJSON();
+            returnInteraction.links = {};
+            var newLink = 'http://' + req.headers.host + '/api/interactions?title=' + returnInteraction.title;
+            returnInteraction.links.FilterByThisTitle =  newLink.replace(' ', '%20');
+            res.json(returnInteraction);
+
+        })
+
+        /*.put(function(req, res){
+             req.books.title = req.body.title;
+             req.books.author = req.body.author;
+             req.books.genre = req.body.genre;
+             req.books.read = req.body.read;
+             req.books.save(function(err){
+                 if(err)
+                    res.status(500).send(err);
+                 else
+                    res.json(req.book);
+                 });
+        })
+
+        .patch(function(req, res){
+             if(req.book._id)
+                delete req.body._id;
+
+             for(var p in req.body)
+             {
+                req.book[p] = req.body[p];
+             }
+
+             req.book.save(function(err){
+                 if(err)
+                    res.status(500).send(err);
+                 else{
+                    res.json(req.book);
+                 }
+             });
+        })
+
+        .delete(function(req, res){
+            req.book.remove(function(err){
+                 if(err)
+                    res.status(500).send(err);
+                 else{
+                    res.status(204).send('Removed');
+                 }
+            });
+
+        });*/
+
+        return interactionRouter;
+};
+
+module.exports = routes;
