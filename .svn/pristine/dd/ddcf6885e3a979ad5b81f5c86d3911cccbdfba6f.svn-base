@@ -1,0 +1,173 @@
+var express = require('express');
+var app = express();
+var mysql = require('mysql');
+var connection = mysql.createConnection({
+    host:'localhost',
+    user:'root',
+    password:'labex2014',
+    database:'Looky'
+});
+var bodyParser = require('body-parser');
+var async = require('async');
+
+connection.connect();
+
+app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.json());
+
+app.get('/knowledges/:idUser', function(req, res, next){
+    var idUser = req.params.idUser;
+    connection.query('SELECT k.id_knowledge, a.name as name, s.name as subject, d.name as degree from knowledge as k inner join area as a on a.id_area = k.area_id inner join subject as s on s.id_subject = k.subject_id inner join degree as d on s.degree_id = d.id_degree where user_id = '+idUser, function(err, rows, fields) {
+        if (!err)
+            res.status(200).send(rows);
+        else
+            res.status(400).send(err);
+    });
+});
+
+app.post('/searchKnowledge', function(req, res){
+
+      var i = 0;
+      var cont = 0;
+      var userKnowledge = new Array();
+
+      if(req.body.degree == null || req.body.degree == undefined || req.body.degree == "" || req.body.degree == "undefined" || req.body.degree == "0"){
+          connection.query('select u.id, d.name as course, u.name, u.rating from user as u inner join degree as d on u.course = d.id_degree where u.id in (select user_id from knowledge where area_id in (select id_area from area where name = "'+req.body.name+'") group by user_id)', function (err, users) {
+                if(err)
+                    res.status(500).send(err);
+                else if(users){
+                    res.status(200).send(users);
+                }
+                else
+                {
+                    res.status(400).send('Nada encontrado');
+                }
+          });
+      }
+      else if(req.body.name == null || req.body.name == undefined || req.body.name == "" || req.body.name == "undefined"){
+             connection.query('select u.name, u.rating, d.name as course from degree as d inner join user as u on d.id_degree = u.course where d.id_degree = "'+req.body.degree+'"', function (err, users) {
+                  if(err)
+                      res.status(500).send(err);
+                  else if(users){
+                      res.status(200).send(users);
+                  }
+                  else
+                  {
+                      res.status(400).send('Nada encontrado');
+                  }
+            });
+        }
+      else if(req.body.name != "undefined" && req.body.degree != "undefined"){
+            connection.query('select u.id, d.name as course, u.name, u.rating from user as u inner join degree as d on u.course = d.id_degree where u.id in (select user_id from knowledge where area_id in (select id_area from area where name = "'+req.body.name+'") group by user_id) and course = "'+req.body.degree+'"', function (err, users) {
+                if(err)
+                    res.status(500).send(err);
+                else if(users){
+                    res.status(200).send(users);
+                }
+                else
+                {
+                    res.status(400).send('Nada encontrado');
+                }
+          });
+      }
+});
+
+app.get('/knowledges', function(req, res){
+    connection.query('SELECT * from knowledge', function(err, rows, fields) {
+        if (!err)
+            res.status(200).send(rows);
+        else
+            res.status(400).send(err);
+    });
+});
+
+
+app.post('/knowledges', function(req, res){
+
+     knowledge = req.body;
+     var area = {};
+
+     if(!knowledge.area.id || knowledge.area.id === 0 || knowledge.area.id === "undefined" ||  knowledge.area.id === null){
+        connection.query('INSERT INTO area (name) values("'+knowledge.area.name+'")', function(err, docs){
+            if(err){
+                res.status(500)
+                res.send(err);
+            }
+            else{
+                area = docs;
+                addKnowledge(area);
+            }
+        })
+     }/*IF*/
+
+     else{
+        area = knowledge.area;
+        addKnowledge(area);
+     }
+
+     function addKnowledge(area){
+        connection.query('INSERT INTO knowledge (user_id, area_id, subject_id) values ("'+knowledge.idUser+'","'+area.id+'","'+knowledge.subject+'")', function(err, doc){
+                if(err){
+                    res.status(500).send(err);
+                }
+                else{
+                    res.status(201);
+                    var knowledgeAdded = {"id_knowledge":doc.insertId,"user_id":knowledge.idUser,"area_id":area.id,"subject_id":knowledge.subject,"name":knowledge.area.name}
+                    res.send(knowledgeAdded);
+                }
+             }
+)}});
+
+app.get('/areas', function(req, res){
+
+    var jsonOne,
+        jsonTwo,
+        concattedjson;
+
+    async.series({
+
+        areas: function(callback){
+           connection.query('SELECT * from area', function(err, areas){
+                callback(null, areas)
+            });
+          },
+        subjects: function(callback){
+             connection.query('SELECT subject.id_subject, subject.name, degree.name as degree from subject inner join degree on subject.degree_id = degree.id_degree', function(err, subjects){
+                callback(null, subjects)
+             });
+          }
+        },
+        function(err, results){
+            res.json(results);
+        });
+});
+
+app.post('/areas', function(req, res){
+         connection.query('INSERT INTO area (name) values ('+req.body.name+')', function(err, doc){
+            res.status(201);
+            res.send(doc)
+        });
+});
+
+app.get('/degrees', function(req, res){
+        connection.query('SELECT * from degree', function(err, docs){
+        res.json(docs);
+    });
+});
+
+app.delete('/knowledges/:idUser/:idKnowledge', function(req, res){
+    var id = parseInt(req.params.idUser);
+    var idKnowledge = req.params.idKnowledge;
+    connection.query('DELETE FROM knowledge where user_id = '+id+' and id_knowledge = '+idKnowledge, function (err, doc) {
+        if(err){
+            res.status(400);
+        }
+        else{
+            res.status(200);
+            res.json("Registro removida");
+        }
+    });
+});
+
+app.listen(3000);
+console.log("Server running on port 3000");
